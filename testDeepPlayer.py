@@ -1,4 +1,5 @@
 import pypokerengine
+import pprint
 from players.deep_player import DeepPlayer
 from players.console_player import ConsolePlayer
 from players.random_player import RandomPlayer
@@ -9,4 +10,4 @@ config.register_player(name="Deep", algorithm=DeepPlayer())
 config.register_player(name="Random", algorithm=RandomPlayer())
 game_result = start_poker(config, verbose=1)
 print("\nGAME RESULT\n")
-print(game_result)
+pprint.PrettyPrinter().pprint(game_result)
