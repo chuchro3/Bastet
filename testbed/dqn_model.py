@@ -35,8 +35,16 @@ MAX_ROUND = 1
 SMALL_BLIND_AMOUNT = 10
 ANTE_AMOUNT = 0
 
+CALL = 100
+FOLD = 200
+CHECK = 300
+RAISE = 400
+ALL_IN = 500
+ACTIONS = [CALL, FOLD, CHECK, RAISE, ALL_IN]
+
 class ActionSpace(object):
-    valid_actions = ['fold', 'call', 'check', 'raise_half', 'raise_pot', 'raise_2pot', 'all_in']
+    #valid_actions = ['fold', 'call', 'check', 'raise_half', 'raise_pot', 'raise_2pot', 'all_in']
+    valid_actions = [CALL, FOLD, CHECK, RAISE, ALL_IN]
     n = len(valid_actions)
     def __init__(self):
         pass
@@ -53,45 +61,6 @@ class GameSpace(object):
 #        self.state_3 = np.random.randint(300, 350, shape, dtype=np.uint16)
         self.states = [self.state_0, self.state_1, self.state_2, self.state_3]
 
-# A skeleton for allowing our trained DeepPlayer to interact with PyPokerEngine.
-class DeepPlayer(BasePokerPlayer):
-
-    def declare_action(self, valid_actions, hole_card, round_state):
-        # bet in first round, call/check all later rounds
-        if round_state['street'] != 'preflop':
-            call_action_info = valid_actions[1]
-            action, amount = call_action_info["action"], call_action_info["amount"]
-            return action, amount   # action returned here is sent to the poker engine
-        # if we are in pre-flop
-        print()
-        print("VALID_ACTIONS:")
-        pp.pprint(valid_actions)
-        print("\nHOLE_CARD:")
-        pp.pprint(hole_card)
-        print("\nROUND_STATE:")
-        pp.pprint(round_state)
-        print("\nEXTRACTED FEATURES LEN:", len(Model().extract_features(hole_card, round_state)))
-        print()
-        # to replace 
-        call_action_info = valid_actions[1]
-        action, amount = call_action_info["action"], call_action_info["amount"]
-            
-        return action, amount   # action returned here is sent to the poker engine
-
-    def receive_game_start_message(self, game_info):
-        pass
-
-    def receive_round_start_message(self, round_count, hole_card, seats):
-        pass
-
-    def receive_street_start_message(self, street, round_state):
-        pass
-
-    def receive_game_update_message(self, action, round_state):
-        pass
-
-    def receive_round_result_message(self, winners, hand_info, round_state):
-        pass
 
 class PokerEnv(object):
     """
@@ -107,31 +76,23 @@ class PokerEnv(object):
         self.action_space = ActionSpace.n
         self.observation_space = GameSpace(shape)
         # poker stuff
-        self.emulator = Emulator()
-        self.emulator.set_game_rule(NUMBER_PLAYERS, MAX_ROUND, SMALL_BLIND_AMOUNT, ANTE_AMOUNT)
-        # set opponent to fish
-        for i in range(NUMBER_PLAYERS):
-            uuid = str(i) + 'abc'
-            player_model = DeepPlayer() if i == 0 else FishPlayer()
-            self.emulator.register_player(uuid, player_model)
+        self.poker = Poker()
 
     def reset(self):
         self.cur_state = 0
         self.num_iters = 0
+        self.poker = Poker()
         return self.observation_space.states[self.cur_state]
         
 
     def step(self, action):
         assert(0 <= action <= ActionSpace.n)
         self.num_iters += 1
-        self.cur_state = action
-        reward = self.rewards[self.cur_state]
-        # call engine here, get next state, reward, done, ?
-        # # perform action in env
-        # # new_state, reward, done, info = self.env.step(action)
-        action
-        # get next state from game
-        
+        assert action in ACTIONS
+
+
+
+
         return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
 
 
