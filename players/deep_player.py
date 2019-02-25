@@ -7,9 +7,12 @@ pp = PrettyPrinter()
 class DeepPlayer(BasePokerPlayer):
 
     def declare_action(self, valid_actions, hole_card, round_state):
-        # valid_actions format => [raise_action_info, call_action_info, fold_action_info]
-        call_action_info = valid_actions[1]
-        action, amount = call_action_info["action"], call_action_info["amount"]
+        # bet in first round, call/check all later rounds
+        if round_state['street'] != 'preflop':
+            call_action_info = valid_actions[1]
+            action, amount = call_action_info["action"], call_action_info["amount"]
+            return action, amount   # action returned here is sent to the poker engine
+        # if we are in pre-flop
         print()
         print("VALID_ACTIONS:")
         pp.pprint(valid_actions)
@@ -19,6 +22,10 @@ class DeepPlayer(BasePokerPlayer):
         pp.pprint(round_state)
         print("\nEXTRACTED FEATURES LEN:", len(Model().extract_features(hole_card, round_state)))
         print()
+        # to replace 
+        call_action_info = valid_actions[1]
+        action, amount = call_action_info["action"], call_action_info["amount"]
+            
         return action, amount   # action returned here is sent to the poker engine
 
     def receive_game_start_message(self, game_info):
@@ -37,10 +44,15 @@ class DeepPlayer(BasePokerPlayer):
         pass
 
 # utility methods for extracting features --------------------------------------
+BIGBLIND = 40
+# get opponent action
+# get game state (street)
 
 # returns position (button = 0,  first to act = 1)
 def get_position_feature(round_state):
     return [1 if round_state['dealer_btn'] == round_state['next_player'] else 0]
+
+    
 
 def get_hole_cards_feature(hole_cards):
   cards = [0] * 52
