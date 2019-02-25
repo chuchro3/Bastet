@@ -72,8 +72,11 @@ class PokerEnv(object):
         self.num_iters += 1
         assert action in ACTIONS
         poker_action, bet_size = action
-        self.poker.make_action(0, action, bet_size)
-
+        self.poker.make_action(action, bet_size)
+        
+        # other player, in this case fish, makes another action
+        # if game hasn't ended.
+        self.poker.make_action(CALL, 0)
 
 
 
