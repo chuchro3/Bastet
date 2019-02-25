@@ -11,3 +11,4 @@ config.register_player(name="Random", algorithm=RandomPlayer())
 game_result = start_poker(config, verbose=1)
 print("\nGAME RESULT\n")
 pprint.PrettyPrinter().pprint(game_result)
+

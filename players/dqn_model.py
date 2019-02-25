@@ -13,6 +13,15 @@ from q2_linear import Linear
 from configs.q3_nature import config
 
 import numpy as np
+import pypokerengine
+import pprint
+from players.deep_player import DeepPlayer
+from players.console_player import ConsolePlayer
+from players.random_player import RandomPlayer
+from pypokerengine.api.game import setup_config, start_poker
+
+
+INITIAL_STACK = 1000 
 
 class ActionSpace(object):
     valid_actions = ['fold', 'call', 'check', 'raise_half', 'raise_pot', 'raise_2pot', 'all_in']
@@ -62,6 +71,12 @@ class PokerEnv(object):
         # # new_state, reward, done, info = self.env.step(action)
         action
         # get next state from game
+        config = setup_config(max_round=1, initial_stack=INITIAL_STACK, small_blind_amount=20)
+        config.register_player(name="Deep", algorithm=DeepPlayer())
+        config.register_player(name="Random", algorithm=RandomPlayer())
+        game_result = start_poker(config, verbose=1)
+        game_result['players'][0]['stack'] - INITIAL_STACK
+        
         return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
 
 
@@ -82,25 +97,25 @@ class NatureQN(Linear):
         Returns:
             out: (tf tensor) of shape = (batch_size, num_actions)
         """
-        # this information might be useful
-        num_actions = self.env.action_space.n
+        # num_actions = self.env.action_space.n
 
-        with tf.variable_scope(scope, reuse=reuse):
-            out = tf.layers.conv2d(state, filters=32, kernel_size=(8, 8),strides=4, activation=tf.nn.relu,
-                                   padding="same")
-            out = tf.layers.conv2d(out, filters=64, kernel_size=(4, 4),strides=2, activation=tf.nn.relu,
-                                   padding="same")
-            out = tf.layers.conv2d(out, filters=64, kernel_size=(3, 3),strides=1, activation=tf.nn.relu,
-                                   padding="same")
-            
-            # flatten
-            out = tf.layers.flatten(out)
-            out = tf.layers.dense(out, units=512, activation=tf.nn.relu)
-            out = tf.layers.dense(out, units=num_actions, activation=None)
+#        with tf.variable_scope(scope, reuse=reuse):
+#            out = tf.layers.conv2d(state, filters=32, kernel_size=(8, 8),strides=4, activation=tf.nn.relu,
+#                                   padding="same")
+#            out = tf.layers.conv2d(out, filters=64, kernel_size=(4, 4),strides=2, activation=tf.nn.relu,
+#                                   padding="same")
+#            out = tf.layers.conv2d(out, filters=64, kernel_size=(3, 3),strides=1, activation=tf.nn.relu,
+#                                   padding="same")
+#            
+#            # flatten
+#            out = tf.layers.flatten(out)
+#            out = tf.layers.dense(out, units=512, activation=tf.nn.relu)
+#            out = tf.layers.dense(out, units=num_actions, activation=None)
 
         ##############################################################
-        ######################## END YOUR CODE #######################
-        return out
+        return [0.0]*4
+        # return out
+
 
 """
 Use deep Q network for test environment.
