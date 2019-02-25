@@ -39,7 +39,7 @@ class GameSpace(object):
 #        self.state_1 = np.random.randint(100, 150, shape, dtype=np.uint16)
 #        self.state_2 = np.random.randint(200, 250, shape, dtype=np.uint16)
 #        self.state_3 = np.random.randint(300, 350, shape, dtype=np.uint16)
-        self.states = [self.state_0, self.state_1, self.state_2, self.state_3]
+        self.states = [1,2,3,4]
 
 class PokerEnv(object):
     """
@@ -65,18 +65,17 @@ class PokerEnv(object):
         assert(0 <= action <= ActionSpace.n)
         self.num_iters += 1
         self.cur_state = action
-        reward = self.rewards[self.cur_state]
+        # reward = self.rewards[self.cur_state]
         # call engine here, get next state, reward, done, ?
         # # perform action in env
         # # new_state, reward, done, info = self.env.step(action)
-        action
         # get next state from game
-        config = setup_config(max_round=1, initial_stack=INITIAL_STACK, small_blind_amount=20)
-        config.register_player(name="Deep", algorithm=DeepPlayer())
-        config.register_player(name="Random", algorithm=RandomPlayer())
-        game_result = start_poker(config, verbose=1)
-        game_result['players'][0]['stack'] - INITIAL_STACK
-        
+#        config = setup_config(max_round=1, initial_stack=INITIAL_STACK, small_blind_amount=20)
+#        config.register_player(name="Deep", algorithm=DeepPlayer())
+#        config.register_player(name="Random", algorithm=RandomPlayer())
+#        game_result = start_poker(config, verbose=1)
+#        game_result['players'][0]['stack'] - INITIAL_STACK
+#        
         return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
 
 

@@ -52,14 +52,38 @@ class ActionSpace(object):
     def sample(self):
         return self.valid_actions[np.random.randint(0, self.n)]
 
-class GameSpace(object):
-    def __init__(self, shape):
-        self.shape = shape
-#        self.state_0 = np.random.randint(0, 50, shape, dtype=np.uint16)
-#        self.state_1 = np.random.randint(100, 150, shape, dtype=np.uint16)
-#        self.state_2 = np.random.randint(200, 250, shape, dtype=np.uint16)
-#        self.state_3 = np.random.randint(300, 350, shape, dtype=np.uint16)
-        self.states = [self.state_0, self.state_1, self.state_2, self.state_3]
+class Poker():
+    def __init__(self, dealer=0):
+        self.deck = random.shuffle(range(52))
+        self.p1_stack = 1000
+        self.p2_stack = 1000
+        self.p1_turn = True
+        # 0:p1, 1:p2
+        self.dealer = dealer
+        # 0: pre-flop, 1: flop, 2: turn, 3: river, 4: done
+        self.stage = 0
+        self.pot = 0
+        self.p1_cards = self.deck[0:2]
+        self.p2_cards = self.deck[2:4]
+        self.common_cards = None
+        self.states = [self.p1_turn, self.pot, self.p1_cards, self.common_cards]
+        
+    def bet(self, player, bet):
+        if bet is FOLD:
+            self.stage = 4
+        
+            self.
+
+    def next_turn(self):
+        if self.stage == 0:
+            self.common_cards = self.deck[5:8]
+        elif self.stage == 1:
+            self.common_cards = self.deck[5:9]
+        elif self.stage == 2:
+            self.common_cards = self.deck[5:10]
+        
+        self.stage += 1
+        return
 
 
 class PokerEnv(object):
@@ -74,7 +98,7 @@ class PokerEnv(object):
         self.num_iters = 0
         self.was_in_second = False
         self.action_space = ActionSpace.n
-        self.observation_space = GameSpace(shape)
+        self.poker = Poker(shape)
         # poker stuff
         self.poker = Poker()
 
