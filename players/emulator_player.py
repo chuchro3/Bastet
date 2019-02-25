@@ -2,6 +2,7 @@ from pypokerengine.players import BasePokerPlayer
 from pypokerengine.api.emulator import Emulator
 from pypokerengine.utils.card_utils import gen_cards
 from pypokerengine.utils.game_state_utils import restore_game_state, attach_hole_card, attach_hole_card_from_deck
+from players.random_player import RandomPlayer
 import random
 
 NB_SIMULATION = 5
@@ -25,11 +26,10 @@ class EmulatorPlayer(BasePokerPlayer):
         self.emulator = Emulator()
         self.emulator.set_game_rule(nb_player, max_round, sb_amount, ante_amount)
         #self.set_opponents_model(RandomModel())
-        self.set_opponents_model(MyModel())
+        self.set_opponents_model(RandomPlayer())
         for player_info in game_info['seats']:
             uuid = player_info['uuid']
             player_model = self.my_model if uuid == self.uuid else self.opponents_model
-            #player_model = self.my_model if uuid == self.uuid else opp
             self.emulator.register_player(uuid, player_model)
 
     def declare_action(self, valid_actions, hole_card, round_state):
@@ -42,7 +42,7 @@ class EmulatorPlayer(BasePokerPlayer):
             simulation_results = []
             log(action)
             for i in range(NB_SIMULATION):
-                self.opponents_model.set_action(1)
+#self.opponents_model.set_action(1)
                 game_state = self._setup_game_state(round_state, hole_card)
                 round_finished_state, _events = self.emulator.run_until_round_finish(game_state)
                 my_stack = [player for player in round_finished_state['table'].seats.players if player.uuid == self.uuid][0].stack
