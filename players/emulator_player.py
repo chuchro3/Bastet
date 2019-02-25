@@ -2,8 +2,9 @@ from pypokerengine.players import BasePokerPlayer
 from pypokerengine.api.emulator import Emulator
 from pypokerengine.utils.card_utils import gen_cards
 from pypokerengine.utils.game_state_utils import restore_game_state, attach_hole_card, attach_hole_card_from_deck
+import random
 
-NB_SIMULATION = 1000
+NB_SIMULATION = 5
 DEBUG_MODE = True
 def log(msg):
     if DEBUG_MODE: print("[debug_info] --> %s" % msg)
@@ -23,9 +24,12 @@ class EmulatorPlayer(BasePokerPlayer):
 
         self.emulator = Emulator()
         self.emulator.set_game_rule(nb_player, max_round, sb_amount, ante_amount)
+        #self.set_opponents_model(RandomModel())
+        self.set_opponents_model(MyModel())
         for player_info in game_info['seats']:
             uuid = player_info['uuid']
             player_model = self.my_model if uuid == self.uuid else self.opponents_model
+            #player_model = self.my_model if uuid == self.uuid else opp
             self.emulator.register_player(uuid, player_model)
 
     def declare_action(self, valid_actions, hole_card, round_state):
@@ -36,11 +40,14 @@ class EmulatorPlayer(BasePokerPlayer):
         for action in try_actions:
             self.my_model.set_action(action)
             simulation_results = []
+            log(action)
             for i in range(NB_SIMULATION):
+                self.opponents_model.set_action(1)
                 game_state = self._setup_game_state(round_state, hole_card)
                 round_finished_state, _events = self.emulator.run_until_round_finish(game_state)
                 my_stack = [player for player in round_finished_state['table'].seats.players if player.uuid == self.uuid][0].stack
                 simulation_results.append(my_stack)
+                log(my_stack)
             action_results[action] = 1.0 * sum(simulation_results) / NB_SIMULATION
             log("average stack after simulation when declares %s : %s" % (
                 {0:'FOLD', 1:'CALL', 2:'MIN_RAISE', 3:'MAX_RAISE'}[action], action_results[action])
@@ -94,4 +101,11 @@ class MyModel(BasePokerPlayer):
             return valid_actions[2]['action'], valid_actions[2]['amount']['max']
         else:
             raise Exception("Invalid action [ %s ] is set" % self.action)
+
+class RandomModel(MyModel):
+
+    def set_action(self, action):
+        self.action = random.randint(0,3)
+        if self.action == 0:
+            self.action = random.randint(0,3)
 
