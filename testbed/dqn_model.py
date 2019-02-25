@@ -17,6 +17,10 @@ from configs.q3_nature import config
 import numpy as np
 import pypokerengine
 import pprint
+import poker_engine
+from poker_constants import *
+
+
 from players.deep_player import DeepPlayer
 from players.console_player import ConsolePlayer
 from players.random_player import RandomPlayer
@@ -29,19 +33,6 @@ from pypokerengine.utils.card_utils import gen_cards
 from pypokerengine.utils.game_state_utils import restore_game_state, attach_hole_card, attach_hole_card_from_deck
 
 
-INITIAL_STACK = 1000 
-NUMBER_PLAYERS = 2
-MAX_ROUND = 1
-SMALL_BLIND_AMOUNT = 10
-ANTE_AMOUNT = 0
-
-CALL = 100
-FOLD = 200
-CHECK = 300
-RAISE = 400
-ALL_IN = 500
-ACTIONS = [CALL, FOLD, CHECK, RAISE, ALL_IN]
-
 class ActionSpace(object):
     #valid_actions = ['fold', 'call', 'check', 'raise_half', 'raise_pot', 'raise_2pot', 'all_in']
     valid_actions = [CALL, FOLD, CHECK, RAISE, ALL_IN]
@@ -52,38 +43,6 @@ class ActionSpace(object):
     def sample(self):
         return self.valid_actions[np.random.randint(0, self.n)]
 
-class Poker():
-    def __init__(self, dealer=0):
-        self.deck = random.shuffle(range(52))
-        self.p1_stack = 1000
-        self.p2_stack = 1000
-        self.p1_turn = True
-        # 0:p1, 1:p2
-        self.dealer = dealer
-        # 0: pre-flop, 1: flop, 2: turn, 3: river, 4: done
-        self.stage = 0
-        self.pot = 0
-        self.p1_cards = self.deck[0:2]
-        self.p2_cards = self.deck[2:4]
-        self.common_cards = None
-        self.states = [self.p1_turn, self.pot, self.p1_cards, self.common_cards]
-        
-    def bet(self, player, bet):
-        if bet is FOLD:
-            self.stage = 4
-        
-            self.
-
-    def next_turn(self):
-        if self.stage == 0:
-            self.common_cards = self.deck[5:8]
-        elif self.stage == 1:
-            self.common_cards = self.deck[5:9]
-        elif self.stage == 2:
-            self.common_cards = self.deck[5:10]
-        
-        self.stage += 1
-        return
 
 
 class PokerEnv(object):
@@ -98,9 +57,8 @@ class PokerEnv(object):
         self.num_iters = 0
         self.was_in_second = False
         self.action_space = ActionSpace.n
-        self.poker = Poker(shape)
         # poker stuff
-        self.poker = Poker()
+        self.poker = poker_enginer.Poker()
 
     def reset(self):
         self.cur_state = 0
@@ -113,6 +71,8 @@ class PokerEnv(object):
         assert(0 <= action <= ActionSpace.n)
         self.num_iters += 1
         assert action in ACTIONS
+        poker_action, bet_size = action
+        self.poker.make_action(0, action, bet_size)
 
 
 
