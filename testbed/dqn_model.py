@@ -35,7 +35,7 @@ from pypokerengine.utils.game_state_utils import restore_game_state, attach_hole
 
 class ActionSpace(object):
     #valid_actions = ['fold', 'call', 'check', 'raise_half', 'raise_pot', 'raise_2pot', 'all_in']
-    valid_actions = [CALL, FOLD, CHECK, RAISE, ALL_IN]
+    valid_actions = ACTIONS
     n = len(valid_actions)
     def __init__(self):
         pass
@@ -46,10 +46,6 @@ class ActionSpace(object):
 
 
 class PokerEnv(object):
-    """
-    Adapted from Igor Gitman, CMU / Karan Goel
-    Modified 
-    """
     def __init__(self):
         #4 states
         self.rewards = [0.0] * 10
@@ -57,7 +53,6 @@ class PokerEnv(object):
         self.num_iters = 0
         self.was_in_second = False
         self.action_space = ActionSpace.n
-        # poker stuff
         self.poker = poker_enginer.Poker()
 
     def reset(self):
@@ -74,11 +69,10 @@ class PokerEnv(object):
         poker_action, bet_size = action
         self.poker.make_action(action, bet_size)
         
+        rewards = self.reward[0]
         # other player, in this case fish, makes another action
         # if game hasn't ended.
-        self.poker.make_action(CALL, 0)
-
-
+        self.poker.make_action(CALL)
 
         return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
 
