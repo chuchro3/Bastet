@@ -42,39 +42,63 @@ class ActionSpace(object):
 
     def sample(self):
         return self.valid_actions[np.random.randint(0, self.n)]
+        
 
+class ObservationSpace(object):
+    def __init__(self, shape=(14,1)):
+        self.shape = shape
+        self.states = [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
 
 
 class PokerEnv(object):
     def __init__(self):
-        #4 states
         self.rewards = [0.0] * 10
         self.cur_state = 0
         self.num_iters = 0
         self.was_in_second = False
         self.action_space = ActionSpace.n
-        self.poker = poker_enginer.Poker()
+        self.poker = poker_engine.Poker()
+        # Assume we play against fishplayer, fish player always calls.
+        self.poker.make_action(CALL)
+        print("DIMS:", self.poker.get_state(0).shape)
+        # after fish player calls, action is on us (dealer, in the BB)
+        self.OUR_PLAYER = 0
+
+        # DQN code expects observation_space
+        self.observation_space = ObservationSpace()
+        self.action_space = ActionSpace()
 
     def reset(self):
         self.cur_state = 0
         self.num_iters = 0
         self.poker = Poker()
-        return self.observation_space.states[self.cur_state]
+        # Assume we play against fishplayer, fish player always calls.
+        self.poker.make_action(CALL)
+        # we are player 0
+        return self.poker.get_state(0)
+#return self.observation_space.states[self.cur_state]
         
 
     def step(self, action):
         assert(0 <= action <= ActionSpace.n)
         self.num_iters += 1
         assert action in ACTIONS
-        poker_action, bet_size = action
         self.poker.make_action(action, bet_size)
         
-        rewards = self.reward[0]
         # other player, in this case fish, makes another action
         # if game hasn't ended.
-        self.poker.make_action(CALL)
+        while self.poker.get_player_to_act() != self.OUR_PLAYER:
+          if self.poker.can_check:
+            self.poker.make_action(CHECK)
+          else:
+            self.poker.make_action(CALL)
 
-        return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
+        reward = 0
+        if self.poker.stage == END_GAME:
+          reward = self.poker.reward[self.OUR_PLAYER]
+
+        return self.poker.get_state(0), reward, self.poker.stage == END_GAME, {} #info dict, empty for now
+#return self.observation_space.states[self.cur_state], reward, self.num_iters >= 5, {'ale.lives':0}
 
 
     def render(self):
@@ -110,7 +134,7 @@ class NatureQN(Linear):
 #            out = tf.layers.dense(out, units=num_actions, activation=None)
 
         ##############################################################
-        return [0.0]*4
+        return [0.0]*14
         # return out
 
 
@@ -118,7 +142,8 @@ class NatureQN(Linear):
 Use deep Q network for test environment.
 """
 if __name__ == '__main__':
-    env = EnvTest((80, 80, 1))
+#env = EnvTest((80, 80, 1))
+    env = PokerEnv()
 
     # exploration strategy
     exp_schedule = LinearExploration(env, config.eps_begin, 

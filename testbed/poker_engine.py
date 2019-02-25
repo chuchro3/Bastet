@@ -1,3 +1,4 @@
+import numpy as np
 import poker_constants
 from poker_constants import *
 import random
@@ -9,15 +10,17 @@ class Poker():
         self.deck = list(range(52))
         random.shuffle(self.deck)
         self.hole_cards = (self.deck[0:2], self.deck[2:4])
-        self.common_cards = [None] * 5
+        self.common_cards = [-1] * 5
 
         # game state initialization
+        # TODO: figure out better encoding for last actions
         self.last_actions = [None, None]
         self.reward = [0, 0]
         self.whose_turn = 0
         self.stage = 0
         self.next_stage_ready = 0
         self.valid_actions = ACTIONS
+        self.can_check = False
 
         # chip initialization
         self.stacks = [INITIAL_STACK, INITIAL_STACK]
@@ -34,10 +37,20 @@ class Poker():
         self.round_pot = [2*SMALL_BLIND_AMOUNT, SMALL_BLIND_AMOUNT]
         self.next_stage_ready = 0
 
+        print("DIMS:", self.get_state(0).shape)
+        print("DIMS:", self.get_state(0))
+
     # player is either 0 or 1
     def get_state(self, player):
-        return [self.whose_turn, self.stacks, self.pot, self.hole_cards[player], self.common_cards,
-                       self.stage, self.last_actions]
+        state = []
+        state += [self.whose_turn]
+        state += self.stacks
+        state += [self.pot]
+        state += self.hole_cards[player]
+        state += self.common_cards
+        state += [self.stage]
+        state += self.last_actions
+        return np.array(state)
         
     def make_action(self, action, bet_size=None):
         self.last_actions[self.whose_turn] = action
@@ -80,6 +93,7 @@ class Poker():
             self.next_turn()
           else:
             self.next_stage_ready = 1
+            self.can_check = True  # BB can check
           
           
         elif action is RAISE:
@@ -97,6 +111,7 @@ class Poker():
           self.pot += chips_raised
           self.stacks[self.whose_turn] -= chips_raised
           self.whose_turn = 1 - self.whose_turn
+          self.can_check = False
         
         elif action is ALL_IN:
           chips_to_call = self.stacks[self.whose_turn]
@@ -107,23 +122,28 @@ class Poker():
           #self.reward[self.whose_turn] = - chips_to_call
           
           self.whose_turn = 1 - self.whose_turn
+          self.can_check = False
 
     def get_valid_actions(self):
       # TODO
       pass
+
+    def get_player_to_act(self):
+      return self.whose_turn
 
     def next_turn(self):
         self.stage += 1
         self.round_pot = [0,0]
         self.whose_turn = 0
         self.next_stage_ready = 0
+        self.can_check = True
         
         if self.stage == PREFLOP:
-            self.common_cards = [None] * 5
+            self.common_cards = [-1] * 5
         elif self.stage == FLOP:
-            self.common_cards = self.deck[5:8] + [None, None]
+            self.common_cards = self.deck[5:8] + [-1, -1]
         elif self.stage == TURN:
-            self.common_cards = self.deck[5:9] + [None]
+            self.common_cards = self.deck[5:9] + [-1]
         elif self.stage == RIVER:
             self.common_cards = self.deck[5:10]
         elif self.stage == SHOW_HAND:
@@ -132,6 +152,7 @@ class Poker():
             # update reward
             self.reward[0] = self.stack[0] - INITIAL_STACK
             self.reward[1] = self.stack[1] - INITIAL_STACK
+            self.state = END_GAME
         elif self.stage == END_GAME:
             pass
     
